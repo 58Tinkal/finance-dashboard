@@ -2,9 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-.input-field{
- @apply bg-[#0b1320] border border-gray-700 rounded-md px-3 py-2 mt-1 text-sm w-full text-white;
+.input-field {
+  @apply w-full bg-[#1a2b45] px-3 py-2 rounded-md text-sm outline-none border border-white/10 focus:border-green-500/70 transition;
 }
-.btn{ @apply px-4 py-2 rounded-md font-medium transition; }
-.btn-primary{ @apply btn bg-green-600 hover:bg-green-700; }
-.btn-outline{ @apply btn border border-gray-600 hover:bg-white/10; }
+
+.btn-outline {
+  @apply px-3 py-1 rounded-md border border-gray-600 text-gray-300 hover:bg-gray-700/40 transition;
+}
+
+.btn-primary {
+  @apply bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-500 transition shadow-lg;
+}
+
+.modal-header {
+  @apply text-lg font-semibold mb-4 text-white;
+}

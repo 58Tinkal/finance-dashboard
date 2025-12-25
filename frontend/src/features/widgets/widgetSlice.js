@@ -2,7 +2,13 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   modalOpen: false,
-  widgets: JSON.parse(localStorage.getItem("widgets") || "[]"),
+  widgets: (() => {
+    try {
+      return JSON.parse(localStorage.getItem("widgets") || "[]");
+    } catch {
+      return [];
+    }
+  })(),
 };
 
 const widgetSlice = createSlice({
