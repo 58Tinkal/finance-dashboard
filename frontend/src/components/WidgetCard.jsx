@@ -1,16 +1,20 @@
 import { useDispatch } from "react-redux";
-import { removeWidget } from "../features/widgets/widgetSlice";
+import { removeWidget, editTitle } from "../features/widgets/widgetSlice";
 import useWidgetData from "../utils/useWidgetData";
 import { useTheme } from "../context/ThemeContext";
+import { formatValue } from "../utils/formatValue";
+import { useState } from "react";
 
-export default function WidgetCard({ widget }) {
+export default function WidgetCard({ widget, onSettings }) {
   const dispatch = useDispatch();
-  const [rawData, refresh, lastUpdated] = useWidgetData(
+  const [rawData, refresh, lastUpdated, loading, error] = useWidgetData(
     widget.url,
     widget.interval
   );
   const { theme } = useTheme();
   const isDark = theme === "dark";
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editTitleValue, setEditTitleValue] = useState(widget.name);
 
   // For card, if array, use first item; else use object
   let data = rawData;
@@ -45,22 +49,49 @@ export default function WidgetCard({ widget }) {
     >
       {/* Header */}
       <div className="flex justify-between items-center mb-3">
-        <h2
-          className={`font-semibold flex items-center gap-2 ${
-            isDark ? "text-white" : "text-gray-900"
-          }`}
-        >
-          {widget.name}
-          <span
-            className={`text-xs px-2 py-1 rounded ${
-              isDark ? "bg-gray-700" : "bg-gray-200"
+        {isEditingTitle ? (
+          <input
+            className={`font-semibold flex items-center gap-2 px-2 py-1 rounded ${
+              isDark
+                ? "bg-[#1a2b45] border-white/10 text-white"
+                : "bg-gray-50 border-gray-300 text-gray-900"
             }`}
+            value={editTitleValue}
+            onChange={(e) => setEditTitleValue(e.target.value)}
+            onBlur={() => {
+              dispatch(editTitle({ id: widget.id, name: editTitleValue }));
+              setIsEditingTitle(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                dispatch(editTitle({ id: widget.id, name: editTitleValue }));
+                setIsEditingTitle(false);
+              } else if (e.key === "Escape") {
+                setEditTitleValue(widget.name);
+                setIsEditingTitle(false);
+              }
+            }}
+            autoFocus
+          />
+        ) : (
+          <h2
+            className={`font-semibold flex items-center gap-2 cursor-pointer ${
+              isDark ? "text-white" : "text-gray-900"
+            }`}
+            onClick={() => setIsEditingTitle(true)}
           >
-            {lastUpdated
-              ? `${Math.floor((new Date() - lastUpdated) / 1000)}s ago`
-              : `${widget.interval}s`}
-          </span>
-        </h2>
+            {widget.name}
+            <span
+              className={`text-xs px-2 py-1 rounded ${
+                isDark ? "bg-gray-700" : "bg-gray-200"
+              }`}
+            >
+              {lastUpdated
+                ? `${Math.floor((new Date() - lastUpdated) / 1000)}s ago`
+                : `${widget.interval}s`}
+            </span>
+          </h2>
+        )}
         <div className="flex items-center gap-2">
           <button
             onClick={refresh}
@@ -80,6 +111,7 @@ export default function WidgetCard({ widget }) {
                 : "text-gray-500 hover:text-gray-700"
             }`}
             title="Settings"
+            onClick={() => onSettings(widget)}
           >
             ⚙️
           </button>
@@ -97,94 +129,133 @@ export default function WidgetCard({ widget }) {
         </div>
       </div>
 
-      {/* Card Type Heading */}
-      <div
-        className={`text-sm font-semibold mb-3 ${
-          isDark ? "text-gray-300" : "text-gray-700"
-        }`}
-      >
-        {widget.cardType === "watchlist"
-          ? "📈 Watchlist"
-          : widget.cardType === "market-gainers"
-          ? "📊 Market Gainers"
-          : widget.cardType === "performance-data"
-          ? "📉 Performance Data"
-          : widget.cardType === "financial-data"
-          ? "💰 Financial Data"
-          : "📊 General Data"}
-      </div>
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+        </div>
+      )}
 
-      {/* Content */}
-      {displayData.length > 0 &&
-        (isList ? (
-          // List view for watchlist/market-gainers
-          <div className="space-y-2">
-            {displayData.map((item, idx) => (
-              <div
-                key={idx}
-                className={`p-3 rounded-lg border transition hover:shadow-md ${
-                  isDark
-                    ? "bg-[#1a2b45] border-white/10 hover:bg-[#1f344a]"
-                    : "bg-gray-50 border-gray-200 hover:bg-gray-100"
-                }`}
-              >
-                <div className="text-sm flex flex-wrap gap-4">
-                  {widget.fields.slice(0, 3).map((key, i) => (
-                    <div key={i}>
-                      <span
-                        className={`font-medium ${
-                          isDark ? "text-gray-400" : "text-gray-600"
-                        }`}
-                      >
-                        {key}:
-                      </span>
-                      <span
-                        className={`ml-1 ${
-                          isDark ? "text-green-300" : "text-green-600"
-                        }`}
-                      >
-                        {String(
-                          key.split(".").reduce((a, b) => a?.[b], item)
-                        ).slice(0, 15)}
-                      </span>
+      {/* Error State */}
+      {error && !loading && (
+        <div
+          className={`p-4 rounded-lg border ${
+            isDark
+              ? "bg-red-900/20 border-red-500/30 text-red-300"
+              : "bg-red-50 border-red-200 text-red-700"
+          }`}
+        >
+          <p className="text-sm">Error loading data: {error}</p>
+        </div>
+      )}
+
+      {/* No Data State */}
+      {!rawData && !loading && !error && (
+        <div
+          className={`p-4 rounded-lg border ${
+            isDark
+              ? "bg-gray-800/50 border-gray-600 text-gray-400"
+              : "bg-gray-50 border-gray-200 text-gray-600"
+          }`}
+        >
+          <p className="text-sm">No data available</p>
+        </div>
+      )}
+
+      {/* Card Type Heading */}
+      {rawData && !loading && !error && (
+        <>
+          <div
+            className={`text-sm font-semibold mb-3 ${
+              isDark ? "text-gray-300" : "text-gray-700"
+            }`}
+          >
+            {widget.cardType === "watchlist"
+              ? "📈 Watchlist"
+              : widget.cardType === "market-gainers"
+              ? "📊 Market Gainers"
+              : widget.cardType === "performance-data"
+              ? "📉 Performance Data"
+              : widget.cardType === "financial-data"
+              ? "💰 Financial Data"
+              : "📊 General Data"}
+          </div>
+
+          {/* Content */}
+          {displayData.length > 0 &&
+            (isList ? (
+              // List view for watchlist/market-gainers
+              <div className="space-y-2">
+                {displayData.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className={`p-3 rounded-lg border transition hover:shadow-md ${
+                      isDark
+                        ? "bg-[#1a2b45] border-white/10 hover:bg-[#1f344a]"
+                        : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                    }`}
+                  >
+                    <div className="text-sm flex flex-wrap gap-4">
+                      {widget.fields.slice(0, 3).map((key, i) => (
+                        <div key={i}>
+                          <span
+                            className={`font-medium ${
+                              isDark ? "text-gray-400" : "text-gray-600"
+                            }`}
+                          >
+                            {key}:
+                          </span>
+                          <span
+                            className={`ml-1 ${
+                              isDark ? "text-green-300" : "text-green-600"
+                            }`}
+                          >
+                            {formatValue(
+                              key.split(".").reduce((a, b) => a?.[b], item),
+                              widget.fieldFormats?.[key] || "none"
+                            ).slice(0, 15)}
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              // Grid view for other types
+              <div className="grid grid-cols-2 gap-3">
+                {widget.fields.map((key, i) => (
+                  <div
+                    key={i}
+                    className={`p-3 rounded-lg border transition hover:shadow-md ${
+                      isDark
+                        ? "bg-[#1a2b45] border-white/10 hover:bg-[#1f344a]"
+                        : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                    }`}
+                  >
+                    <div
+                      className={`text-xs font-medium mb-1 ${
+                        isDark ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      {key}
+                    </div>
+                    <div
+                      className={`text-lg font-bold ${
+                        isDark ? "text-green-300" : "text-green-600"
+                      }`}
+                    >
+                      {formatValue(
+                        key.split(".").reduce((a, b) => a?.[b], displayData[0]),
+                        widget.fieldFormats?.[key] || "none"
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             ))}
-          </div>
-        ) : (
-          // Grid view for other types
-          <div className="grid grid-cols-2 gap-3">
-            {widget.fields.map((key, i) => (
-              <div
-                key={i}
-                className={`p-3 rounded-lg border transition hover:shadow-md ${
-                  isDark
-                    ? "bg-[#1a2b45] border-white/10 hover:bg-[#1f344a]"
-                    : "bg-gray-50 border-gray-200 hover:bg-gray-100"
-                }`}
-              >
-                <div
-                  className={`text-xs font-medium mb-1 ${
-                    isDark ? "text-gray-400" : "text-gray-600"
-                  }`}
-                >
-                  {key}
-                </div>
-                <div
-                  className={`text-lg font-bold ${
-                    isDark ? "text-green-300" : "text-green-600"
-                  }`}
-                >
-                  {String(
-                    key.split(".").reduce((a, b) => a?.[b], displayData[0])
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        ))}
+        </>
+      )}
     </div>
   );
 }

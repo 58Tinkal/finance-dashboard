@@ -4,14 +4,50 @@ import AddWidgetModal from "./components/AddWidgetModal";
 import WidgetCard from "./components/WidgetCard";
 import WidgetTable from "./components/WidgetTable";
 import WidgetChart from "./components/WidgetChart";
+import WidgetSettingsModal from "./components/WidgetSettingsModal";
 import ThemeToggle from "./components/ThemeToggle";
 import { useTheme } from "./context/ThemeContext";
+import { useState } from "react";
 
 export default function App() {
   const { widgets, modalOpen } = useSelector((s) => s.widgets);
   const dispatch = useDispatch();
   const { theme } = useTheme();
   const isDark = theme === "dark";
+  const [settingsWidget, setSettingsWidget] = useState(null);
+
+  const exportConfig = () => {
+    const config = { widgets, exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(config, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "dashboard-config.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importConfig = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const config = JSON.parse(e.target.result);
+          if (config.widgets) {
+            // Update localStorage and reload
+            localStorage.setItem("widgets", JSON.stringify(config.widgets));
+            window.location.reload();
+          }
+        } catch (err) {
+          alert("Invalid config file");
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
 
   return (
     <div
@@ -36,6 +72,21 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-4">
+          <button
+            className="px-3 py-2 bg-blue-600 hover:bg-blue-500 transition rounded-lg font-medium shadow-lg text-sm"
+            onClick={exportConfig}
+          >
+            Export
+          </button>
+          <label className="px-3 py-2 bg-blue-600 hover:bg-blue-500 transition rounded-lg font-medium shadow-lg text-sm cursor-pointer">
+            Import
+            <input
+              type="file"
+              accept=".json"
+              onChange={importConfig}
+              className="hidden"
+            />
+          </label>
           <ThemeToggle />
           <button
             className="px-4 py-2 bg-green-600 hover:bg-green-500 transition rounded-lg font-medium shadow-lg"
@@ -50,11 +101,11 @@ export default function App() {
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {widgets.map((w) =>
           w.displayMode === "card" ? (
-            <WidgetCard widget={w} key={w.id} />
+            <WidgetCard widget={w} key={w.id} onSettings={setSettingsWidget} />
           ) : w.displayMode === "table" ? (
-            <WidgetTable widget={w} key={w.id} />
+            <WidgetTable widget={w} key={w.id} onSettings={setSettingsWidget} />
           ) : w.displayMode === "chart" ? (
-            <WidgetChart widget={w} key={w.id} />
+            <WidgetChart widget={w} key={w.id} onSettings={setSettingsWidget} />
           ) : null
         )}
 
@@ -78,6 +129,12 @@ export default function App() {
       </div>
 
       {modalOpen && <AddWidgetModal />}
+      {settingsWidget && (
+        <WidgetSettingsModal
+          widget={settingsWidget}
+          onClose={() => setSettingsWidget(null)}
+        />
+      )}
     </div>
   );
 }

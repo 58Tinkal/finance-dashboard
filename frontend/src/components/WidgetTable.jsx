@@ -3,10 +3,11 @@ import { removeWidget } from "../features/widgets/widgetSlice";
 import useWidgetData from "../utils/useWidgetData";
 import { useTheme } from "../context/ThemeContext";
 import { useState, useEffect, useMemo } from "react";
+import { formatValue } from "../utils/formatValue";
 
-export default function WidgetTable({ widget }) {
+export default function WidgetTable({ widget, onSettings }) {
   const dispatch = useDispatch();
-  const [data, refresh, lastUpdated] = useWidgetData(
+  const [data, refresh, lastUpdated, loading, error] = useWidgetData(
     widget.url,
     widget.interval
   );
@@ -22,7 +23,7 @@ export default function WidgetTable({ widget }) {
   function extractRow(item, fields) {
     return fields.map((f) => {
       const value = f.split(".").reduce((acc, k) => acc?.[k], item);
-      return value !== undefined ? value : "N/A";
+      return formatValue(value, widget.fieldFormats?.[f] || "none");
     });
   }
 
@@ -141,6 +142,7 @@ export default function WidgetTable({ widget }) {
                 : "text-gray-500 hover:text-gray-700"
             }`}
             title="Settings"
+            onClick={() => onSettings(widget)}
           >
             ⚙️
           </button>
@@ -199,130 +201,171 @@ export default function WidgetTable({ widget }) {
               </button>
             </div>
 
-            {/* Search */}
-            <div className="mb-4">
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1); // Reset to first page on search
-                }}
-                className={`w-full p-2 rounded border ${
-                  isDark
-                    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                    : "bg-white border-gray-300 text-gray-900"
-                }`}
-              />
-            </div>
-
-            {/* Filters */}
-            <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-              {widget.fields.map((field) => (
-                <input
-                  key={field}
-                  type="text"
-                  placeholder={`Filter ${field}`}
-                  value={filters[field] || ""}
-                  onChange={(e) => {
-                    setFilters({ ...filters, [field]: e.target.value });
-                    setCurrentPage(1); // Reset to first page on filter
-                  }}
-                  className={`p-2 rounded border ${
-                    isDark
-                      ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                      : "bg-white border-gray-300 text-gray-900"
-                  }`}
-                />
-              ))}
-            </div>
-
-            {/* Pagination */}
-            <div className="flex justify-center items-center mb-4">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className={`px-3 py-1 rounded ${
-                    currentPage === 1
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : isDark
-                      ? "bg-gray-700 hover:bg-gray-600 text-white"
-                      : "bg-gray-200 hover:bg-gray-300 text-gray-900"
-                  }`}
-                >
-                  Prev
-                </button>
-                <span
-                  className={`text-sm ${
-                    isDark ? "text-gray-300" : "text-gray-700"
-                  }`}
-                >
-                  Page {currentPage} of {totalPages || 1}
-                </span>
-                <button
-                  onClick={() =>
-                    setCurrentPage(Math.min(totalPages || 1, currentPage + 1))
-                  }
-                  disabled={currentPage === totalPages || totalPages === 0}
-                  className={`px-3 py-1 rounded ${
-                    currentPage === totalPages
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : isDark
-                      ? "bg-gray-700 hover:bg-gray-600 text-white"
-                      : "bg-gray-200 hover:bg-gray-300 text-gray-900"
-                  }`}
-                >
-                  Next
-                </button>
+            {/* Loading State */}
+            {loading && (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
               </div>
-            </div>
+            )}
 
-            {/* Table */}
-            <div className="overflow-auto max-h-96 w-full">
-              <table className="w-full text-sm min-w-max">
-                <thead>
-                  <tr
-                    className={`border-b ${
-                      isDark ? "border-gray-700" : "border-gray-300"
+            {/* Error State */}
+            {error && !loading && (
+              <div
+                className={`p-4 rounded-lg border mb-4 ${
+                  isDark
+                    ? "bg-red-900/20 border-red-500/30 text-red-300"
+                    : "bg-red-50 border-red-200 text-red-700"
+                }`}
+              >
+                <p className="text-sm">Error loading data: {error}</p>
+              </div>
+            )}
+
+            {/* No Data State */}
+            {!data && !loading && !error && (
+              <div
+                className={`p-4 rounded-lg border mb-4 ${
+                  isDark
+                    ? "bg-gray-800/50 border-gray-600 text-gray-400"
+                    : "bg-gray-50 border-gray-200 text-gray-600"
+                }`}
+              >
+                <p className="text-sm">No data available</p>
+              </div>
+            )}
+
+            {data && !loading && !error && (
+              <>
+                {/* Search */}
+                <div className="mb-4">
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setCurrentPage(1); // Reset to first page on search
+                    }}
+                    className={`w-full p-2 rounded border ${
+                      isDark
+                        ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                        : "bg-white border-gray-300 text-gray-900"
                     }`}
-                  >
-                    {widget.fields.map((f) => (
-                      <th
-                        key={f}
-                        className={`py-2 px-4 text-left ${
-                          isDark ? "text-green-300" : "text-green-600"
-                        }`}
-                      >
-                        {f}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedData.map((item, i) => (
-                    <tr
-                      key={i}
-                      className={`border-b ${
-                        isDark ? "border-gray-800" : "border-gray-200"
+                  />
+                </div>
+
+                {/* Filters */}
+                <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {widget.fields.map((field) => (
+                    <input
+                      key={field}
+                      type="text"
+                      placeholder={`Filter ${field}`}
+                      value={filters[field] || ""}
+                      onChange={(e) => {
+                        setFilters({ ...filters, [field]: e.target.value });
+                        setCurrentPage(1); // Reset to first page on filter
+                      }}
+                      className={`p-2 rounded border ${
+                        isDark
+                          ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                          : "bg-white border-gray-300 text-gray-900"
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                <div className="flex justify-center items-center mb-4">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() =>
+                        setCurrentPage(Math.max(1, currentPage - 1))
+                      }
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 rounded ${
+                        currentPage === 1
+                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          : isDark
+                          ? "bg-gray-700 hover:bg-gray-600 text-white"
+                          : "bg-gray-200 hover:bg-gray-300 text-gray-900"
                       }`}
                     >
-                      {extractRow(item, widget.fields).map((value, idx) => (
-                        <td
-                          key={idx}
-                          className={`py-2 px-4 ${
-                            isDark ? "text-gray-300" : "text-gray-700"
+                      Prev
+                    </button>
+                    <span
+                      className={`text-sm ${
+                        isDark ? "text-gray-300" : "text-gray-700"
+                      }`}
+                    >
+                      Page {currentPage} of {totalPages || 1}
+                    </span>
+                    <button
+                      onClick={() =>
+                        setCurrentPage(
+                          Math.min(totalPages || 1, currentPage + 1)
+                        )
+                      }
+                      disabled={currentPage === totalPages || totalPages === 0}
+                      className={`px-3 py-1 rounded ${
+                        currentPage === totalPages
+                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          : isDark
+                          ? "bg-gray-700 hover:bg-gray-600 text-white"
+                          : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                      }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+
+                {/* Table */}
+                <div className="overflow-auto max-h-96 w-full">
+                  <table className="w-full text-sm min-w-max">
+                    <thead>
+                      <tr
+                        className={`border-b ${
+                          isDark ? "border-gray-700" : "border-gray-300"
+                        }`}
+                      >
+                        {widget.fields.map((f) => (
+                          <th
+                            key={f}
+                            className={`py-2 px-4 text-left ${
+                              isDark ? "text-green-300" : "text-green-600"
+                            }`}
+                          >
+                            {f}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedData.map((item, i) => (
+                        <tr
+                          key={i}
+                          className={`border-b ${
+                            isDark ? "border-gray-800" : "border-gray-200"
                           }`}
                         >
-                          {String(value)}
-                        </td>
+                          {extractRow(item, widget.fields).map((value, idx) => (
+                            <td
+                              key={idx}
+                              className={`py-2 px-4 ${
+                                isDark ? "text-gray-300" : "text-gray-700"
+                              }`}
+                            >
+                              {String(value)}
+                            </td>
+                          ))}
+                        </tr>
                       ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

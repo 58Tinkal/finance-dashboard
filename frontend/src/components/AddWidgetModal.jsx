@@ -24,6 +24,7 @@ export default function AddWidgetModal() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [searchfield, setSearchfield] = useState("");
+  const [fieldFormats, setFieldFormats] = useState({});
 
   const testAPI = async () => {
     try {
@@ -52,6 +53,7 @@ export default function AddWidgetModal() {
         cardType,
         chartType,
         dataInterval,
+        fieldFormats,
       })
     );
     dispatch(toggleModal(false));
@@ -299,6 +301,39 @@ export default function AddWidgetModal() {
                 </span>
               ))}
             </div>
+
+            {/* Field Formats */}
+            {selectedFields.length > 0 && (
+              <>
+                <p className="text-sm font-medium mt-4">Field Formats</p>
+                <div className="mt-2 space-y-2">
+                  {selectedFields.map((f) => (
+                    <div key={f} className="flex items-center gap-2">
+                      <span className="text-sm w-32">{f}:</span>
+                      <select
+                        className={`flex-1 px-2 py-1 rounded text-sm ${
+                          isDark
+                            ? "bg-[#1a2b45] border-white/10 text-white"
+                            : "bg-gray-50 border-gray-300 text-gray-900"
+                        }`}
+                        value={fieldFormats[f] || "none"}
+                        onChange={(e) =>
+                          setFieldFormats({
+                            ...fieldFormats,
+                            [f]: e.target.value,
+                          })
+                        }
+                      >
+                        <option value="none">None</option>
+                        <option value="currency">Currency</option>
+                        <option value="percentage">Percentage</option>
+                        <option value="number">Number</option>
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </>
         )}
 

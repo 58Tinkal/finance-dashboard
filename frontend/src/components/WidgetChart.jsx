@@ -21,9 +21,9 @@ import { withDeviceRatio, withSize } from "react-financial-charts";
 
 const ResponsiveChartCanvas = withSize()(ChartCanvas);
 
-export default function WidgetChart({ widget }) {
+export default function WidgetChart({ widget, onSettings }) {
   const dispatch = useDispatch();
-  const [raw, refresh, lastUpdated] = useWidgetData(
+  const [raw, refresh, lastUpdated, loading, error] = useWidgetData(
     widget.url,
     widget.interval
   );
@@ -42,14 +42,31 @@ export default function WidgetChart({ widget }) {
     }
   }
 
-  if (!data || !Array.isArray(data))
+  if (!data || !Array.isArray(data)) {
     return (
       <div
         className={`p-4 rounded-xl ${isDark ? "bg-[#112038]" : "bg-gray-100"}`}
       >
-        Provide API that returns array for chart.
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+          </div>
+        ) : error ? (
+          <div
+            className={`p-4 rounded-lg border ${
+              isDark
+                ? "bg-red-900/20 border-red-500/30 text-red-300"
+                : "bg-red-50 border-red-200 text-red-700"
+            }`}
+          >
+            <p className="text-sm">Error loading data: {error}</p>
+          </div>
+        ) : (
+          <p>Provide API that returns array for chart.</p>
+        )}
       </div>
     );
+  }
 
   const chartData = data.map((item) => {
     let obj = {};
@@ -123,6 +140,7 @@ export default function WidgetChart({ widget }) {
                 : "text-gray-500 hover:text-gray-700"
             }`}
             title="Settings"
+            onClick={() => onSettings(widget)}
           >
             ⚙️
           </button>
@@ -140,65 +158,87 @@ export default function WidgetChart({ widget }) {
         </div>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <div
+          className={`p-4 rounded-lg border mx-5 ${
+            isDark
+              ? "bg-red-900/20 border-red-500/30 text-red-300"
+              : "bg-red-50 border-red-200 text-red-700"
+          }`}
+        >
+          <p className="text-sm">Error loading data: {error}</p>
+        </div>
+      )}
+
       {/* Chart */}
-      <div className="relative" style={{ height: 250, overflow: "hidden" }}>
-        {widget.chartType === "candle" ? (
-          isValidCandleData ? (
-            <ResponsiveChartCanvas
-              height={250}
-              ratio={1}
-              margin={{ left: 50, right: 50, top: 10, bottom: 30 }}
-              data={chartData}
-              xAccessor={(d) => d.date}
-              xScaleProvider={discontinuousTimeScaleProvider}
-              xExtents={[
-                new Date(chartData[0]?.date),
-                new Date(chartData[chartData.length - 1]?.date),
-              ]}
-            >
-              <Chart id={1} yExtents={(d) => [d.high, d.low]}>
-                <FinancialXAxis axisAt="bottom" orient="bottom" />
-                <FinancialYAxis axisAt="right" orient="right" />
-                <CandlestickSeries />
-              </Chart>
-            </ResponsiveChartCanvas>
-          ) : (
-            <div
-              className={`flex items-center justify-center h-full ${
-                isDark ? "text-gray-300" : "text-gray-600"
-              }`}
-            >
-              <div className="text-center">
-                <p className="text-lg mb-2">📊</p>
-                <p>
-                  Candlestick chart requires OHLC data with fields: date, open,
-                  high, low, close
-                </p>
-                <p className="text-sm mt-2">
-                  Use: http://localhost:5000/api/test-chart-data
-                </p>
+      {!loading && !error && (
+        <div className="relative" style={{ height: 250, overflow: "hidden" }}>
+          {widget.chartType === "candle" ? (
+            isValidCandleData ? (
+              <ResponsiveChartCanvas
+                height={250}
+                ratio={1}
+                margin={{ left: 50, right: 50, top: 10, bottom: 30 }}
+                data={chartData}
+                xAccessor={(d) => d.date}
+                xScaleProvider={discontinuousTimeScaleProvider}
+                xExtents={[
+                  new Date(chartData[0]?.date),
+                  new Date(chartData[chartData.length - 1]?.date),
+                ]}
+              >
+                <Chart id={1} yExtents={(d) => [d.high, d.low]}>
+                  <FinancialXAxis axisAt="bottom" orient="bottom" />
+                  <FinancialYAxis axisAt="right" orient="right" />
+                  <CandlestickSeries />
+                </Chart>
+              </ResponsiveChartCanvas>
+            ) : (
+              <div
+                className={`flex items-center justify-center h-full ${
+                  isDark ? "text-gray-300" : "text-gray-600"
+                }`}
+              >
+                <div className="text-center">
+                  <p className="text-lg mb-2">📊</p>
+                  <p>
+                    Candlestick chart requires OHLC data with fields: date,
+                    open, high, low, close
+                  </p>
+                  <p className="text-sm mt-2">
+                    Use: http://localhost:5000/api/test-chart-data
+                  </p>
+                </div>
               </div>
-            </div>
-          )
-        ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
-              {widget.fields.map((f, i) => (
-                <Line
-                  type="monotone"
-                  dataKey={f}
-                  stroke="#4ade80"
-                  strokeWidth="2"
-                  key={i}
-                />
-              ))}
-              <XAxis dataKey={widget.fields[0]} stroke="#aaa" />
-              <YAxis stroke="#aaa" />
-              <Tooltip />
-            </LineChart>
-          </ResponsiveContainer>
-        )}
-      </div>
+            )
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                {widget.fields.map((f, i) => (
+                  <Line
+                    type="monotone"
+                    dataKey={f}
+                    stroke="#4ade80"
+                    strokeWidth="2"
+                    key={i}
+                  />
+                ))}
+                <XAxis dataKey={widget.fields[0]} stroke="#aaa" />
+                <YAxis stroke="#aaa" />
+                <Tooltip />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      )}
     </div>
   );
 }
