@@ -124,7 +124,7 @@ export default function WidgetChart({ widget, onSettings }) {
         <div className="flex items-center gap-2">
           <button
             onClick={refresh}
-            className={`p-1 rounded hover:bg-gray-600/20 transition ${
+            className={`p-2 rounded hover:bg-gray-600/20 transition ${
               isDark
                 ? "text-gray-400 hover:text-gray-200"
                 : "text-gray-500 hover:text-gray-700"
@@ -134,7 +134,7 @@ export default function WidgetChart({ widget, onSettings }) {
             🔄
           </button>
           <button
-            className={`p-1 rounded hover:bg-gray-600/20 transition ${
+            className={`p-2 rounded hover:bg-gray-600/20 transition ${
               isDark
                 ? "text-gray-400 hover:text-gray-200"
                 : "text-gray-500 hover:text-gray-700"
@@ -146,7 +146,7 @@ export default function WidgetChart({ widget, onSettings }) {
           </button>
           <button
             onClick={() => dispatch(removeWidget(widget.id))}
-            className={`p-1 rounded hover:bg-red-600/20 transition ${
+            className={`p-2 rounded hover:bg-red-600/20 transition ${
               isDark
                 ? "text-red-400 hover:text-red-300"
                 : "text-red-500 hover:text-red-700"

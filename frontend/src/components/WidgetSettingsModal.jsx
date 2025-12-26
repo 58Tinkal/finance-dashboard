@@ -49,9 +49,9 @@ export default function WidgetSettingsModal({ widget, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
       <div
-        className={`w-[400px] p-6 rounded-xl shadow-xl border backdrop-blur-lg ${
+        className={`w-full max-w-sm sm:max-w-md p-4 sm:p-6 rounded-xl shadow-xl border backdrop-blur-lg ${
           isDark ? "bg-[#112235] border-white/10" : "bg-white border-gray-300"
         }`}
       >

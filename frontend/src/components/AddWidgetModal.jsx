@@ -60,11 +60,11 @@ export default function AddWidgetModal() {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-      {/* ───── Modal Box ───── */}
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+      {/*  Modal Box */}
       <div
-        className={`w-[520px] max-h-[92vh] overflow-y-auto 
-      p-6 rounded-xl shadow-xl border backdrop-blur-lg ${
+        className={`w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl max-h-[92vh] overflow-y-auto 
+      p-4 sm:p-6 rounded-xl shadow-xl border backdrop-blur-lg ${
         isDark ? "bg-[#112235] border-white/10" : "bg-white border-gray-300"
       }`}
       >
@@ -155,7 +155,7 @@ export default function AddWidgetModal() {
           </p>
         )}
 
-        {/* ───── Display Mode ───── */}
+        {/* Display Mode */}
         {apiData && (
           <>
             <p className="text-sm font-medium mt-4">Display Mode</p>
@@ -176,7 +176,7 @@ export default function AddWidgetModal() {
               ))}
             </div>
 
-            {/* ───── Chart Type (only for chart mode) ───── */}
+            {/*  Chart Type (only for chart mode) */}
             {displayMode === "chart" && (
               <>
                 <p className="text-sm font-medium mt-4">Chart Type</p>
@@ -199,7 +199,7 @@ export default function AddWidgetModal() {
               </>
             )}
 
-            {/* ───── Data Interval (for chart mode) ───── */}
+            {/* Data Interval (for chart mode)*/}
             {displayMode === "chart" && (
               <>
                 <p className="text-sm font-medium mt-4">Data Interval</p>
@@ -222,7 +222,7 @@ export default function AddWidgetModal() {
               </>
             )}
 
-            {/* ───── Card Type (only for card mode) ───── */}
+            {/*Card Type (only for card mode) */}
             {displayMode === "card" && (
               <>
                 <p className="text-sm font-medium mt-4">Card Type</p>
@@ -251,7 +251,7 @@ export default function AddWidgetModal() {
               </>
             )}
 
-            {/* ───── Field Search ───── */}
+            {/* Field Search*/}
             <p className="text-sm font-medium mt-5">Available Fields</p>
             <input
               className="input-field mb-2"
@@ -337,7 +337,7 @@ export default function AddWidgetModal() {
           </>
         )}
 
-        {/* ───── Footer Buttons ───── */}
+        {/*Footer Buttons */}
         <div className="sticky bottom-0 bg-[#112235] pt-5 pb-1 flex justify-end gap-3 mt-6">
           <button
             className="btn-outline"

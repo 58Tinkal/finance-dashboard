@@ -16,7 +16,7 @@ export default function WidgetCard({ widget, onSettings }) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editTitleValue, setEditTitleValue] = useState(widget.name);
 
-  // For card, if array, use first item; else use object
+  // For card if array usinng first item else object
   let data = rawData;
   if (Array.isArray(rawData) && rawData.length > 0) {
     data = rawData[0];
@@ -27,15 +27,13 @@ export default function WidgetCard({ widget, onSettings }) {
   let isList = false;
 
   if (widget.cardType === "watchlist" || widget.cardType === "market-gainers") {
-    // For list types, show multiple items
     if (Array.isArray(rawData)) {
-      displayData = rawData.slice(0, 5); // Show top 5
+      displayData = rawData.slice(0, 5);
       isList = true;
     } else {
       displayData = [data];
     }
   } else {
-    // For other types, show single item as grid
     displayData = [data];
   }
 
@@ -95,7 +93,7 @@ export default function WidgetCard({ widget, onSettings }) {
         <div className="flex items-center gap-2">
           <button
             onClick={refresh}
-            className={`p-1 rounded hover:bg-gray-600/20 transition ${
+            className={`p-2 rounded hover:bg-gray-600/20 transition ${
               isDark
                 ? "text-gray-400 hover:text-gray-200"
                 : "text-gray-500 hover:text-gray-700"
@@ -105,7 +103,7 @@ export default function WidgetCard({ widget, onSettings }) {
             🔄
           </button>
           <button
-            className={`p-1 rounded hover:bg-gray-600/20 transition ${
+            className={`p-2 rounded hover:bg-gray-600/20 transition ${
               isDark
                 ? "text-gray-400 hover:text-gray-200"
                 : "text-gray-500 hover:text-gray-700"
@@ -117,7 +115,7 @@ export default function WidgetCard({ widget, onSettings }) {
           </button>
           <button
             onClick={() => dispatch(removeWidget(widget.id))}
-            className={`p-1 rounded hover:bg-red-600/20 transition ${
+            className={`p-2 rounded hover:bg-red-600/20 transition ${
               isDark
                 ? "text-red-400 hover:text-red-300"
                 : "text-red-500 hover:text-red-700"

@@ -58,9 +58,9 @@ export default function App() {
       } p-8`}
     >
       {/* Top Navigation */}
-      <header className="flex justify-between items-center mb-8">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
             <span className="px-2 py-1 bg-green-500/20 rounded-lg">📊</span>{" "}
             Finance Dashboard
           </h1>
@@ -71,14 +71,14 @@ export default function App() {
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto">
           <button
-            className="px-3 py-2 bg-blue-600 hover:bg-blue-500 transition rounded-lg font-medium shadow-lg text-sm"
+            className="px-3 py-2 bg-blue-600 hover:bg-blue-500 transition rounded-lg font-medium shadow-lg text-sm flex-1 sm:flex-none"
             onClick={exportConfig}
           >
             Export
           </button>
-          <label className="px-3 py-2 bg-blue-600 hover:bg-blue-500 transition rounded-lg font-medium shadow-lg text-sm cursor-pointer">
+          <label className="px-3 py-2 bg-blue-600 hover:bg-blue-500 transition rounded-lg font-medium shadow-lg text-sm cursor-pointer flex-1 sm:flex-none text-center">
             Import
             <input
               type="file"
@@ -87,9 +87,11 @@ export default function App() {
               className="hidden"
             />
           </label>
-          <ThemeToggle />
+          <div className="flex-shrink-0">
+            <ThemeToggle />
+          </div>
           <button
-            className="px-4 py-2 bg-green-600 hover:bg-green-500 transition rounded-lg font-medium shadow-lg"
+            className="px-4 py-2 bg-green-600 hover:bg-green-500 transition rounded-lg font-medium shadow-lg flex-1 sm:flex-none"
             onClick={() => dispatch(toggleModal(true))}
           >
             + Add Widget
@@ -98,7 +100,7 @@ export default function App() {
       </header>
 
       {/* Widget Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
         {widgets.map((w) =>
           w.displayMode === "card" ? (
             <WidgetCard widget={w} key={w.id} onSettings={setSettingsWidget} />

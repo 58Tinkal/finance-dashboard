@@ -126,7 +126,7 @@ export default function WidgetTable({ widget, onSettings }) {
         <div className="flex items-center gap-2">
           <button
             onClick={refresh}
-            className={`p-1 rounded hover:bg-gray-600/20 transition ${
+            className={`p-2 rounded hover:bg-gray-600/20 transition ${
               isDark
                 ? "text-gray-400 hover:text-gray-200"
                 : "text-gray-500 hover:text-gray-700"
@@ -136,7 +136,7 @@ export default function WidgetTable({ widget, onSettings }) {
             🔄
           </button>
           <button
-            className={`p-1 rounded hover:bg-gray-600/20 transition ${
+            className={`p-2 rounded hover:bg-gray-600/20 transition ${
               isDark
                 ? "text-gray-400 hover:text-gray-200"
                 : "text-gray-500 hover:text-gray-700"
@@ -148,7 +148,7 @@ export default function WidgetTable({ widget, onSettings }) {
           </button>
           <button
             onClick={() => dispatch(removeWidget(widget.id))}
-            className={`p-1 rounded hover:bg-red-600/20 transition ${
+            className={`p-2 rounded hover:bg-red-600/20 transition ${
               isDark
                 ? "text-red-400 hover:text-red-300"
                 : "text-red-500 hover:text-red-700"
@@ -176,9 +176,9 @@ export default function WidgetTable({ widget, onSettings }) {
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div
-            className={`rounded-xl p-6 shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-auto ${
+            className={`rounded-xl p-4 sm:p-6 shadow-2xl w-full max-w-sm sm:max-w-2xl md:max-w-4xl lg:max-w-6xl max-h-[90vh] overflow-auto ${
               isDark ? "bg-[#112038]" : "bg-white"
             }`}
           >
@@ -322,7 +322,7 @@ export default function WidgetTable({ widget, onSettings }) {
 
                 {/* Table */}
                 <div className="overflow-auto max-h-96 w-full">
-                  <table className="w-full text-sm min-w-max">
+                  <table className="w-full text-sm">
                     <thead>
                       <tr
                         className={`border-b ${
