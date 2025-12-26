@@ -108,7 +108,10 @@ The backend is currently **minimal but strategically positioned** for future enh
 ### Testing Endpoints
 
 - `GET /api/test-data` - Returns sample stock market data (25 companies)
+`https://finance-dashboard-backend-opal.vercel.app/api/test-data`
+
 - `GET /api/test-chart-data` - Returns sample OHLC chart data
+`https://finance-dashboard-backend-opal.vercel.app/api/test-chart-data`
 
 ### Future Optimization Potential
 
